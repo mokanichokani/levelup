@@ -4,10 +4,28 @@ import bcrypt from 'bcryptjs';
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json();
+    const {
+      collegeName,
+      registrationNumber,
+      email,
+      phoneNumber,
+      address,
+      city,
+      state,
+      zipCode,
+      principalName,
+      principalEmail,
+      principalPhone,
+      controllerName,
+      controllerEmail,
+      controllerPhone,
+      password,
+    } = await request.json();
 
-    // Validate input
-    if (!name || !email || !password) {
+    // Validate required fields
+    if (!collegeName || !registrationNumber || !email || !phoneNumber || !address || 
+        !city || !state || !zipCode || !principalName || !principalEmail || !principalPhone ||
+        !controllerName || !controllerEmail || !controllerPhone || !password) {
       return NextResponse.json(
         { error: 'All fields are required' },
         { status: 400 }
@@ -17,11 +35,17 @@ export async function POST(request: Request) {
     const client = await clientPromise;
     const db = client.db();
 
-    // Check if user already exists
-    const existingUser = await db.collection('users').findOne({ email });
-    if (existingUser) {
+    // Check if college registration number or email already exists
+    const existingCollege = await db.collection('colleges').findOne({
+      $or: [
+        { registrationNumber },
+        { email }
+      ]
+    });
+
+    if (existingCollege) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: 'College registration number or email already exists' },
         { status: 400 }
       );
     }
@@ -29,16 +53,50 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
-    const result = await db.collection('users').insertOne({
-      name,
+    // Create new college record
+    const result = await db.collection('colleges').insertOne({
+      collegeName,
+      registrationNumber,
       email,
+      phoneNumber,
+      address: {
+        street: address,
+        city,
+        state,
+        zipCode
+      },
+      principal: {
+        name: principalName,
+        email: principalEmail,
+        phone: principalPhone
+      },
+      controller: {
+        name: controllerName,
+        email: controllerEmail,
+        phone: controllerPhone
+      },
       password: hashedPassword,
-      createdAt: new Date(),
+      status: 'pending', // pending, approved, rejected
+      registrationDate: new Date(),
+      lastUpdated: new Date(),
+      verificationStatus: {
+        documents: false,
+        email: false,
+        phone: false
+      }
     });
 
     return NextResponse.json(
-      { message: 'User created successfully', userId: result.insertedId },
+      { 
+        message: 'College registration submitted successfully',
+        collegeId: result.insertedId,
+        collegeInfo: {
+          collegeName,
+          registrationNumber,
+          email,
+          status: 'pending'
+        }
+      },
       { status: 201 }
     );
   } catch (error) {
@@ -48,4 +106,4 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
