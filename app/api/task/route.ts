@@ -78,7 +78,8 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const { id, status } = await request.json();
-
+    console.log(id, status);
+    // console.log(typeof(id));
     if (!id || !status) {
       return NextResponse.json(
         { error: "Task ID and status are required." },
@@ -97,16 +98,21 @@ export async function PATCH(request: Request) {
 
     const client = await clientPromise;
     const db = client.db();
+    const boo = ObjectId.isValid(id);
+    console.log(boo);
+    const doc = await db.collection("examtasks").findOne({ _id: new ObjectId(id) });
+console.log(doc);
 
     const result = await db
       .collection("examtasks")
       .findOneAndUpdate(
-        { _id: new ObjectId(id) },
+        { _id: new ObjectId(id)  },
         { $set: { status } },
         { returnDocument: "after" }
       );
 
-    if (!result.value) {
+    if (!result) {
+      console.log(result);
       return NextResponse.json(
         { error: "Exam task not found" },
         { status: 404 }
@@ -114,7 +120,7 @@ export async function PATCH(request: Request) {
     }
 
     return NextResponse.json(
-      { message: "Task status updated successfully", data: result.value },
+      { message: "Task status updated successfully", data: result },
       { status: 200 }
     );
   } catch (error: any) {
