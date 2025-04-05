@@ -37,12 +37,12 @@ export async function POST(request: Request) {
     }
 
     // Check if college is approved
-    if (college.status !== 'approved') {
-      return NextResponse.json(
-        { error: 'Your college account is pending approval' },
-        { status: 403 }
-      );
-    }
+    // if (college.status !== 'approved') {
+    //   return NextResponse.json(
+    //     { error: 'Your college account is pending approval' },
+    //     { status: 403 }
+    //   );
+    // }
 
     // Return necessary data for localStorage
     return NextResponse.json({
