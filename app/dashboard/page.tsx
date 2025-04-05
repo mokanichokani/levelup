@@ -8,19 +8,25 @@ export default function Dashboard() {
   const router = useRouter();
   const [collegeId, setCollegeId] = useState<string | null>(null);
   const [collegeName, setCollegeName] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  console.log("hello world");
 
   useEffect(() => {
-    // Check if college is logged in
-    const storedCollegeId = localStorage.getItem('collegeId');
-    const storedCollegeName = localStorage.getItem('collegeName');
-    
-    if (!storedCollegeId) {
-      router.push('/login');
-      return;
+    // Check if we're in the browser before accessing localStorage
+    if (typeof window !== 'undefined') {
+      // Check if college is logged in
+      const storedCollegeId = localStorage.getItem('collegeId');
+      const storedCollegeName = localStorage.getItem('collegeName');
+      
+      if (!storedCollegeId) {
+        router.push('/login');
+        return;
+      }
+      
+      setCollegeId(storedCollegeId);
+      setCollegeName(storedCollegeName);
+      setIsLoading(false);
     }
-    
-    setCollegeId(storedCollegeId);
-    setCollegeName(storedCollegeName);
   }, [router]);
 
   const handleLogout = () => {
@@ -30,11 +36,11 @@ export default function Dashboard() {
     router.push('/login');
   };
 
-  if (!collegeId) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
-
   return (
+    <div className='w-full h-full'>
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-indigo-600 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -121,5 +127,7 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+    </div>
+    // <div className='text-black'>Hi</div>
   );
 } 

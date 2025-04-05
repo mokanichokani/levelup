@@ -45,6 +45,7 @@ export async function POST(request: Request) {
     // }
 
     // Return necessary data for localStorage
+    console.log("Login Successful");
     return NextResponse.json({
       collegeId: college._id.toString(),
       collegeName: college.collegeName,
